@@ -8,7 +8,6 @@ export default defineConfig({
       userscript: {
         name: "Bilibili评论区图片批量下载",
         namespace: "BilibiliCommentImageDownloader",
-        version: "0.9.3",
         description: "批量下载B站评论区中的图片（暂仅支持动态和视频评论区）",
         author: "Kaesinol",
         license: "MIT",
