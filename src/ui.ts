@@ -10,7 +10,6 @@ import apiDialogHtml from "./templates/api-dialog.html?raw";
 import menuHtml from "./templates/menu.html?raw";
 import type { ApiType, BiliReply, BoundPaginationElement, DownloadImage, ProcessedCommentImage } from "./types";
 
-const BILIBILI_THEME_COOKIE_URL = "https://www.bilibili.com/";
 const NIGHT_MODE_CLASS = "night-mode";
 
 let currentPage = 1;
@@ -33,6 +32,7 @@ export function createDownloadMenu(): HTMLDivElement {
   }
 
   document.body.appendChild(menuContainer);
+  setupDraggableMenu(menuContainer);
 
   getRequiredElement<HTMLButtonElement>("bili-menu-close-button").addEventListener("click", () => {
     menuContainer.style.display = "none";
@@ -499,6 +499,60 @@ function attachPaginationHandlers(paginationDiv: BoundPaginationElement): void {
   });
 }
 
+function setupDraggableMenu(menuContainer: HTMLDivElement): void {
+  const header = menuContainer.querySelector<HTMLElement>(".bili-img-download-header");
+  if (!header) return;
+
+  let offsetX = 0;
+  let offsetY = 0;
+
+  header.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    if ((event.target as HTMLElement | null)?.closest(".bili-img-download-header-actions")) return;
+
+    const rect = menuContainer.getBoundingClientRect();
+    offsetX = event.clientX - rect.left;
+    offsetY = event.clientY - rect.top;
+
+    menuContainer.style.left = `${rect.left}px`;
+    menuContainer.style.top = `${rect.top}px`;
+    menuContainer.style.right = "auto";
+    menuContainer.style.margin = "0";
+
+    header.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  });
+
+  header.addEventListener("pointermove", (event) => {
+    if (!header.hasPointerCapture(event.pointerId)) return;
+
+    const rect = menuContainer.getBoundingClientRect();
+    const maxLeft = Math.max(0, window.innerWidth - rect.width);
+    const maxTop = Math.max(0, window.innerHeight - rect.height);
+    const nextLeft = clamp(event.clientX - offsetX, 0, maxLeft);
+    const nextTop = clamp(event.clientY - offsetY, 0, maxTop);
+
+    menuContainer.style.left = `${nextLeft}px`;
+    menuContainer.style.top = `${nextTop}px`;
+  });
+
+  header.addEventListener("pointerup", (event) => {
+    if (header.hasPointerCapture(event.pointerId)) {
+      header.releasePointerCapture(event.pointerId);
+    }
+  });
+
+  header.addEventListener("pointercancel", (event) => {
+    if (header.hasPointerCapture(event.pointerId)) {
+      header.releasePointerCapture(event.pointerId);
+    }
+  });
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
 async function applyThemeFromBilibiliCookie(): Promise<void> {
   const themeStyle = await getBilibiliThemeStyle();
   document.documentElement.classList.toggle(NIGHT_MODE_CLASS, themeStyle === "dark");
@@ -508,7 +562,7 @@ function getBilibiliThemeStyle(): Promise<string | null> {
   return new Promise((resolve) => {
     GM_cookie.list(
       {
-        url: BILIBILI_THEME_COOKIE_URL,
+        url: window.location.href,
         name: "theme_style"
       },
       (cookies, error) => {
