@@ -27,6 +27,7 @@ export default defineConfig({
           "GM_setValue",
           "GM_deleteValue",
           "GM_listValues",
+          "GM_cookie",
           "unsafeWindow"
         ],
         "run-at": "document-start",

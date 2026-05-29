@@ -10,10 +10,14 @@ import apiDialogHtml from "./templates/api-dialog.html?raw";
 import menuHtml from "./templates/menu.html?raw";
 import type { ApiType, BiliReply, BoundPaginationElement, DownloadImage, ProcessedCommentImage } from "./types";
 
+const BILIBILI_THEME_COOKIE_URL = "https://www.bilibili.com/";
+const NIGHT_MODE_CLASS = "night-mode";
+
 let currentPage = 1;
 
 export function createDownloadMenu(): HTMLDivElement {
   injectStyle("bili-img-download-style", menuCss);
+  void applyThemeFromBilibiliCookie();
 
   const existingMenu = document.getElementById("bili-img-download-menu");
   if (existingMenu instanceof HTMLDivElement) {
@@ -42,6 +46,7 @@ export function createDownloadMenu(): HTMLDivElement {
 
 export function showApiConfigDialog(): void {
   injectStyle("bili-img-download-style", menuCss);
+  void applyThemeFromBilibiliCookie();
 
   const prevBodyOverflow = document.body.style.overflow;
   document.body.style.overflow = "hidden";
@@ -200,7 +205,7 @@ export function addNavButton(): void {
       newButton.textContent = "解析评论区图片";
       lastButton.after(newButton);
       newButton.addEventListener("click", () => {
-        syncNightMode();
+        void applyThemeFromBilibiliCookie();
         void loadAndDisplayData();
       });
     }
@@ -219,7 +224,7 @@ export function addNavButton(): void {
   navItem.textContent = "解析评论区图片";
   navItem.style.cssText = "cursor: pointer;";
   navItem.addEventListener("click", () => {
-    syncNightMode();
+    void applyThemeFromBilibiliCookie();
     void loadAndDisplayData();
   });
 
@@ -258,7 +263,7 @@ function addSpaceNavButton(): void {
         const dataParams = root1.host.getAttribute("data-params");
         const identifier = dataParams?.match(/\d{4,}/)?.[0] || null;
 
-        syncNightMode();
+        void applyThemeFromBilibiliCookie();
         document.currentIdentifier = identifier;
         void loadAndDisplayData();
       });
@@ -494,11 +499,30 @@ function attachPaginationHandlers(paginationDiv: BoundPaginationElement): void {
   });
 }
 
-function syncNightMode(): void {
-  const m = getComputedStyle(document.body).backgroundColor.match(/\d+/g);
-  if (!m) return;
+async function applyThemeFromBilibiliCookie(): Promise<void> {
+  const themeStyle = await getBilibiliThemeStyle();
+  document.documentElement.classList.toggle(NIGHT_MODE_CLASS, themeStyle === "dark");
+}
 
-  document.documentElement.classList.toggle("night-mode", (Number(m[0]) * 299 + Number(m[1]) * 587 + Number(m[2]) * 114) / 1000 < 128);
+function getBilibiliThemeStyle(): Promise<string | null> {
+  return new Promise((resolve) => {
+    GM_cookie.list(
+      {
+        url: BILIBILI_THEME_COOKIE_URL,
+        name: "theme_style"
+      },
+      (cookies, error) => {
+        if (error) {
+          console.warn("读取 Bilibili 主题 Cookie 失败:", error);
+          resolve(null);
+          return;
+        }
+
+        const themeCookie = cookies.find((cookie) => cookie.name === "theme_style");
+        resolve(themeCookie?.value || null);
+      }
+    );
+  });
 }
 
 function formatTimestamp(timestamp: number): string {
