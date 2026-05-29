@@ -1,0 +1,17 @@
+{
+  "name": "bilibili-comment-image-downloader",
+  "version": "0.9.3",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/tampermonkey": "^5.0.5",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14",
+    "vite-plugin-monkey": "^8.0.6"
+  }
+}
