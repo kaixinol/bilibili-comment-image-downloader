@@ -1,33 +1,56 @@
+:where(#bili-img-download-menu, .bili-dialog) {
+  --bili-bg: #fff;
+  --bili-text: #111;
+  --bili-muted: #666;
+  --bili-subtle: #999;
+  --bili-border: #eee;
+  --bili-border-strong: #ccc;
+  --bili-hover-bg: #f5f5f5;
+  --bili-primary: #00a1d6;
+  --bili-primary-dark: #0089b8;
+  --bili-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  --bili-focus: rgba(0, 160, 220, 0.25);
+}
+
+:where(body:has(.dark_mode), html.night-mode) :where(#bili-img-download-menu, .bili-dialog) {
+  --bili-bg: #0f1011;
+  --bili-text: #e9eef6;
+  --bili-muted: #cfd8e6;
+  --bili-subtle: #888;
+  --bili-border: #333;
+  --bili-border-strong: #3a3f43;
+  --bili-hover-bg: #1e2226;
+  --bili-shadow: 0 6px 26px rgba(0, 0, 0, 0.6);
+}
+
 #bili-img-download-menu {
   position: fixed;
   top: 70px;
   right: 20px;
-  width: 400px;
-  max-height: 600px;
-  overflow-y: auto;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
   z-index: 9999;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  display: none;
-  background: #fff;
-  color: #000;
   box-sizing: border-box;
+  width: min(400px, calc(100vw - 40px));
+  max-height: min(600px, calc(100vh - 90px));
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid var(--bili-border-strong);
+  border-radius: 5px;
+  background: var(--bili-bg);
+  color: var(--bili-text);
+  box-shadow: var(--bili-shadow);
 }
 
-body:has(.dark_mode) #bili-img-download-menu,
-html.night-mode #bili-img-download-menu {
-  background: #000;
-  color: #fff;
+#bili-img-download-menu[hidden],
+#bili-img-pagination[hidden] {
+  display: none;
 }
 
 .bili-img-download-header {
-  margin-bottom: 10px;
-  padding-bottom: 5px;
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid #eee;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--bili-border);
   cursor: move;
   user-select: none;
   touch-action: none;
@@ -35,18 +58,8 @@ html.night-mode #bili-img-download-menu {
 
 .bili-img-download-header h3 {
   margin: 0;
+  color: var(--bili-text);
   font-size: 16px;
-  color: #000;
-}
-
-body:has(.dark_mode) .bili-img-download-header,
-html.night-mode .bili-img-download-header {
-  border-bottom: 1px solid #444;
-}
-
-body:has(.dark_mode) .bili-img-download-header h3,
-html.night-mode .bili-img-download-header h3 {
-  color: #fff;
 }
 
 .bili-img-download-header-actions {
@@ -58,14 +71,18 @@ html.night-mode .bili-img-download-header h3 {
 
 .bili-img-icon-button {
   appearance: none;
+  padding: 0;
   border: none;
   background: transparent;
   color: inherit;
-  cursor: pointer;
   font-size: 16px;
   font-weight: bold;
   line-height: 1;
-  padding: 0;
+  cursor: pointer;
+}
+
+.bili-img-nav-trigger {
+  cursor: pointer;
 }
 
 #bili-menu-close-button {
@@ -77,16 +94,20 @@ html.night-mode .bili-img-download-header h3 {
   justify-content: space-between;
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--bili-border);
+}
+
+#bili-img-pagination button,
+.bili-dialog .btn {
+  cursor: pointer;
 }
 
 #bili-img-pagination button {
   padding: 5px 10px;
-  background-color: #00a1d6;
-  color: #fff;
   border: none;
   border-radius: 3px;
-  cursor: pointer;
+  background-color: var(--bili-primary);
+  color: #fff;
 }
 
 #bili-img-pagination button:disabled {
@@ -98,83 +119,55 @@ html.night-mode .bili-img-download-header h3 {
   line-height: 30px;
 }
 
-.bili-dialog-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-  -webkit-tap-highlight-color: transparent;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
 .bili-dialog {
   box-sizing: border-box;
-  background-color: #fff;
-  color: #111;
+  width: min(400px, 90vw);
+  max-width: none;
   padding: 20px;
+  border: 1px solid var(--bili-border);
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  max-width: 400px;
-  width: 90%;
-  border: 1px solid #e6e6e6;
+  background-color: var(--bili-bg);
+  color: var(--bili-text);
+  box-shadow: var(--bili-shadow);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
-body:has(.dark_mode) .bili-dialog-overlay,
-html.night-mode .bili-dialog-overlay {
+.bili-dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(body:has(.dark_mode), html.night-mode) .bili-dialog::backdrop {
   background-color: rgba(0, 0, 0, 0.65);
 }
 
-body:has(.dark_mode) .bili-dialog,
-html.night-mode .bili-dialog {
-  background-color: #0f1011;
-  color: #e9eef6;
-  border: 1px solid #222426;
-  box-shadow: 0 6px 26px rgba(0, 0, 0, 0.6);
-}
-
-.bili-dialog .bili-dialog-title {
+.bili-dialog-title {
+  display: block;
   margin: 0 0 15px;
   font-size: 18px;
   line-height: 1;
-  display: block;
 }
 
-.bili-dialog .bili-dialog-desc {
+.bili-dialog-desc {
   margin-bottom: 15px;
-  line-height: 1.5;
+  color: var(--bili-muted);
   font-size: 13px;
-  color: #333;
+  line-height: 1.5;
 }
 
-body:has(.dark_mode) .bili-dialog .bili-dialog-desc,
-html.night-mode .bili-dialog .bili-dialog-desc {
-  color: #cfd8e6;
-}
-
-.bili-dialog .bili-dialog-desc small {
+.bili-dialog-desc small {
   display: block;
   margin-top: 6px;
-  color: #666;
+  color: var(--bili-muted);
   font-size: 12px;
-}
-
-body:has(.dark_mode) .bili-dialog .bili-dialog-desc small,
-html.night-mode .bili-dialog .bili-dialog-desc small {
-  color: #aeb7c6;
 }
 
 .bili-dialog label {
   display: block;
   margin-bottom: 10px;
+  font-size: 14px;
   cursor: pointer;
   user-select: none;
-  font-size: 14px;
 }
 
 .bili-dialog input[type="radio"] {
@@ -182,7 +175,7 @@ html.night-mode .bili-dialog .bili-dialog-desc small {
   vertical-align: middle;
 }
 
-.bili-dialog .bili-dialog-buttons {
+.bili-dialog-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -190,81 +183,61 @@ html.night-mode .bili-dialog .bili-dialog-desc small {
 }
 
 .bili-dialog .btn {
+  min-width: 72px;
   padding: 8px 14px;
   border-radius: 6px;
-  cursor: pointer;
   font-size: 14px;
-  min-width: 72px;
   line-height: 1;
   box-shadow: none;
 }
 
 .bili-dialog .btn.cancel {
-  background-color: #fff;
-  color: inherit;
-  border: 1px solid #ccc;
-}
-
-body:has(.dark_mode) .bili-dialog .btn.cancel,
-html.night-mode .bili-dialog .btn.cancel {
+  border: 1px solid var(--bili-border-strong);
   background-color: transparent;
-  border: 1px solid #3a3f43;
   color: inherit;
 }
 
 .bili-dialog .btn.confirm {
-  background-color: #00a1d6;
-  color: #fff;
   border: none;
+  background-color: var(--bili-primary);
+  color: #fff;
 }
 
-body:has(.dark_mode) .bili-dialog .btn.confirm,
-html.night-mode .bili-dialog .btn.confirm {
-  background-color: #0089b8;
-  color: #fff;
+:where(body:has(.dark_mode), html.night-mode) .bili-dialog .btn.confirm {
+  background-color: var(--bili-primary-dark);
 }
 
 .bili-dialog .btn:focus,
 .bili-dialog input[type="radio"]:focus {
-  outline: 2px solid rgba(0, 160, 220, 0.25);
+  outline: 2px solid var(--bili-focus);
   outline-offset: 2px;
 }
 
 .bili-download-stats {
-  padding: 5px 0;
   margin-bottom: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--bili-border);
+  color: var(--bili-muted);
   font-size: 12px;
-  color: #666;
-  border-bottom: 1px solid #eee;
-}
-
-body:has(.dark_mode) .bili-download-stats,
-html.night-mode .bili-download-stats {
-  color: #b0b7c3;
-  border-bottom: 1px solid #333;
 }
 
 .bili-download-option {
-  padding: 8px;
+  display: block;
+  width: 100%;
   margin: 5px 0;
-  border: 1px solid #eee;
+  padding: 8px;
+  border: 1px solid var(--bili-border);
   border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
-body:has(.dark_mode) .bili-download-option,
-html.night-mode .bili-download-option {
-  border-color: #333;
-}
-
 .bili-download-option:hover {
-  background-color: #f5f5f5;
-}
-
-body:has(.dark_mode) .bili-download-option:hover,
-html.night-mode .bili-download-option:hover {
-  background-color: #1e2226;
+  background-color: var(--bili-hover-bg);
 }
 
 .bili-download-option-content {
@@ -275,45 +248,40 @@ html.night-mode .bili-download-option:hover {
 
 .bili-download-info {
   display: flex;
+  flex: 1;
   align-items: center;
   overflow: hidden;
-  flex: 1;
 }
 
 .bili-download-username {
-  font-weight: bold;
   margin-right: 5px;
+  font-weight: bold;
   white-space: nowrap;
 }
 
 .bili-download-message {
-  margin: 0 5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   flex: 1;
+  margin: 0 5px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .bili-download-time {
-  font-size: 11px;
-  color: #999;
-  white-space: nowrap;
   margin-left: 5px;
-}
-
-body:has(.dark_mode) .bili-download-time,
-html.night-mode .bili-download-time {
-  color: #888;
+  color: var(--bili-subtle);
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .bili-download-count {
-  color: #00a1d6;
-  white-space: nowrap;
   margin-left: 10px;
+  color: var(--bili-primary);
+  white-space: nowrap;
 }
 
 @media (max-width: 360px) {
-  .bili-dialog .bili-dialog-buttons {
+  .bili-dialog-buttons {
     flex-direction: column-reverse;
     align-items: stretch;
   }

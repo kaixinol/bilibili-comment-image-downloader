@@ -5,8 +5,10 @@ import {
   getStoredData,
   setApiType
 } from "./api";
+import { byId, elementFromHtml, injectStyleOnce, queryRequired } from "./dom";
 import menuCss from "./styles/menu.css?inline";
 import apiDialogHtml from "./templates/api-dialog.html?raw";
+import downloadOptionHtml from "./templates/download-option.html?raw";
 import menuHtml from "./templates/menu.html?raw";
 import type { ApiType, BiliReply, BoundPaginationElement, DownloadImage, ProcessedCommentImage } from "./types";
 
@@ -15,7 +17,7 @@ const NIGHT_MODE_CLASS = "night-mode";
 let currentPage = 1;
 
 export function createDownloadMenu(): HTMLDivElement {
-  injectStyle("bili-img-download-style", menuCss);
+  injectStyleOnce("bili-img-download-style", menuCss);
   void applyThemeFromBilibiliCookie();
 
   const existingMenu = document.getElementById("bili-img-download-menu");
@@ -23,21 +25,14 @@ export function createDownloadMenu(): HTMLDivElement {
     return existingMenu;
   }
 
-  const template = document.createElement("template");
-  template.innerHTML = menuHtml.trim();
-  const menuContainer = template.content.firstElementChild as HTMLDivElement | null;
-
-  if (!menuContainer) {
-    throw new Error("下载菜单模板为空");
-  }
-
+  const menuContainer = elementFromHtml<HTMLDivElement>(menuHtml);
   document.body.appendChild(menuContainer);
   setupDraggableMenu(menuContainer);
 
-  getRequiredElement<HTMLButtonElement>("bili-menu-close-button").addEventListener("click", () => {
-    menuContainer.style.display = "none";
+  byId<HTMLButtonElement>("bili-menu-close-button").addEventListener("click", () => {
+    hideDownloadMenu(menuContainer);
   });
-  getRequiredElement<HTMLButtonElement>("bili-api-config-button").addEventListener("click", () => {
+  byId<HTMLButtonElement>("bili-api-config-button").addEventListener("click", () => {
     showApiConfigDialog();
   });
 
@@ -45,60 +40,26 @@ export function createDownloadMenu(): HTMLDivElement {
 }
 
 export function showApiConfigDialog(): void {
-  injectStyle("bili-img-download-style", menuCss);
+  injectStyleOnce("bili-img-download-style", menuCss);
   void applyThemeFromBilibiliCookie();
 
-  const prevBodyOverflow = document.body.style.overflow;
-  document.body.style.overflow = "hidden";
-
-  const template = document.createElement("template");
-  template.innerHTML = apiDialogHtml.trim();
-  const overlay = template.content.firstElementChild as HTMLDivElement | null;
-
-  if (!overlay) {
-    document.body.style.overflow = prevBodyOverflow || "";
-    return;
-  }
-
-  const dialog = overlay.querySelector<HTMLDivElement>(".bili-dialog");
-  const cancelButton = overlay.querySelector<HTMLButtonElement>(".btn.cancel");
-  const confirmButton = overlay.querySelector<HTMLButtonElement>(".btn.confirm");
-
-  if (!dialog || !cancelButton || !confirmButton) {
-    document.body.style.overflow = prevBodyOverflow || "";
-    return;
-  }
-
-  const overlayElement = overlay;
-  const dialogElement = dialog;
-  const cancelButtonElement = cancelButton;
-  const confirmButtonElement = confirmButton;
+  const dialog = elementFromHtml<HTMLDialogElement>(apiDialogHtml);
+  const cancelButton = queryRequired<HTMLButtonElement>(dialog, ".btn.cancel");
+  const confirmButton = queryRequired<HTMLButtonElement>(dialog, ".btn.confirm");
 
   const currentApiType = getCurrentApiType();
-  const radio = dialogElement.querySelector<HTMLInputElement>(`input[name="apiType"][value="${currentApiType}"]`);
+  const radio = dialog.querySelector<HTMLInputElement>(`input[name="apiType"][value="${currentApiType}"]`);
   if (radio) radio.checked = true;
 
   function closeDialog(): void {
-    if (document.body.contains(overlayElement)) {
-      document.body.removeChild(overlayElement);
-    }
-    document.body.style.overflow = prevBodyOverflow || "";
-    document.removeEventListener("keydown", onKeyDown);
-  }
-
-  function onKeyDown(event: KeyboardEvent): void {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      closeDialog();
-    } else if (event.key === "Enter" && dialogElement.contains(document.activeElement)) {
-      event.preventDefault();
-      confirmButtonElement.click();
+    if (dialog.open) {
+      dialog.close();
     }
   }
 
-  cancelButtonElement.addEventListener("click", closeDialog);
-  confirmButtonElement.addEventListener("click", () => {
-    const selectedRadio = dialogElement.querySelector<HTMLInputElement>('input[name="apiType"]:checked');
+  cancelButton.addEventListener("click", closeDialog);
+  confirmButton.addEventListener("click", () => {
+    const selectedRadio = dialog.querySelector<HTMLInputElement>('input[name="apiType"]:checked');
 
     if (selectedRadio) {
       const newApiType = selectedRadio.value as ApiType;
@@ -119,27 +80,40 @@ export function showApiConfigDialog(): void {
 
     closeDialog();
   });
-  overlayElement.addEventListener("click", (event) => {
-    if (event.target === overlayElement) {
+
+  dialog.addEventListener("click", (event) => {
+    if (event.target !== dialog) return;
+
+    const rect = dialog.getBoundingClientRect();
+    const clickedBackdrop =
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom;
+
+    if (clickedBackdrop) {
       closeDialog();
     }
   });
-  document.addEventListener("keydown", onKeyDown);
-  document.body.appendChild(overlayElement);
+  dialog.addEventListener("close", () => {
+    dialog.remove();
+  });
+  document.body.appendChild(dialog);
+  dialog.showModal();
 
   setTimeout(() => {
-    const firstFocusable = dialogElement.querySelector<HTMLInputElement>('input[name="apiType"]') || cancelButtonElement;
+    const firstFocusable = dialog.querySelector<HTMLInputElement>('input[name="apiType"]') || cancelButton;
     firstFocusable.focus();
   }, 0);
 }
 
 export async function loadAndDisplayData(page = 1): Promise<void> {
   const menuContainer = document.getElementById("bili-img-download-menu") || createDownloadMenu();
-  const menuContent = getRequiredElement<HTMLDivElement>("bili-img-download-content");
-  const pageInfo = getRequiredElement<HTMLSpanElement>("bili-page-info");
-  const prevButton = getRequiredElement<HTMLButtonElement>("bili-prev-page");
+  const menuContent = byId<HTMLDivElement>("bili-img-download-content");
+  const pageInfo = byId<HTMLSpanElement>("bili-page-info");
+  const prevButton = byId<HTMLButtonElement>("bili-prev-page");
 
-  menuContainer.style.display = "block";
+  showDownloadMenu(menuContainer);
   menuContent.innerHTML = "<p>正在加载数据...</p>";
 
   try {
@@ -220,9 +194,8 @@ export function addNavButton(): void {
   }
 
   const navItem = document.createElement("div");
-  navItem.className = "bili-tabs__nav__item";
+  navItem.className = "bili-tabs__nav__item bili-img-nav-trigger";
   navItem.textContent = "解析评论区图片";
-  navItem.style.cssText = "cursor: pointer;";
   navItem.addEventListener("click", () => {
     void applyThemeFromBilibiliCookie();
     void loadAndDisplayData();
@@ -379,45 +352,27 @@ function createDownloadOptions(processedData: ProcessedCommentImage[], menuConte
   statsDiv.textContent = `共找到 ${processedData.length} 条包含图片的评论 [${apiTypeText}]`;
   menuContent.appendChild(statsDiv);
 
+  const fragment = document.createDocumentFragment();
   for (const item of processedData) {
-    const downloadOption = document.createElement("div");
-    downloadOption.className = "bili-download-option";
+    const downloadOption = elementFromHtml<HTMLButtonElement>(downloadOptionHtml);
+    const usernameSpan = queryRequired<HTMLSpanElement>(downloadOption, ".bili-download-username");
+    const messageSpan = queryRequired<HTMLSpanElement>(downloadOption, ".bili-download-message");
+    const timeSpan = queryRequired<HTMLSpanElement>(downloadOption, ".bili-download-time");
+    const countSpan = queryRequired<HTMLSpanElement>(downloadOption, ".bili-download-count");
 
-    const content = document.createElement("div");
-    content.className = "bili-download-option-content";
-
-    const infoDiv = document.createElement("div");
-    infoDiv.className = "bili-download-info";
-
-    const usernameSpan = document.createElement("span");
-    usernameSpan.className = "bili-download-username";
     usernameSpan.textContent = item.username;
-
-    const messageSpan = document.createElement("span");
-    messageSpan.className = "bili-download-message";
     messageSpan.textContent = item.truncatedMessage;
     messageSpan.title = item.fullMessage;
-
-    const timeSpan = document.createElement("span");
-    timeSpan.className = "bili-download-time";
     timeSpan.textContent = item.timestamp;
-
-    const countSpan = document.createElement("span");
-    countSpan.className = "bili-download-count";
     countSpan.textContent = `[${item.images.length}张]`;
 
-    infoDiv.appendChild(usernameSpan);
-    infoDiv.appendChild(messageSpan);
-    infoDiv.appendChild(timeSpan);
-    content.appendChild(infoDiv);
-    content.appendChild(countSpan);
-    downloadOption.appendChild(content);
     downloadOption.addEventListener("click", () => {
       downloadImages(item.images);
     });
 
-    menuContent.appendChild(downloadOption);
+    fragment.appendChild(downloadOption);
   }
+  menuContent.appendChild(fragment);
 }
 
 function downloadImages(images: DownloadImage[]): void {
@@ -443,7 +398,7 @@ function downloadImages(images: DownloadImage[]): void {
 
 function refreshDownloadInterface(): void {
   const menuContainer = document.getElementById("bili-img-download-menu");
-  if (!menuContainer || menuContainer.style.display !== "block") {
+  if (!isDownloadMenuOpen(menuContainer)) {
     return;
   }
 
@@ -454,7 +409,7 @@ function updatePaginationVisibility(): void {
   const paginationDiv = document.getElementById("bili-img-pagination");
 
   if (paginationDiv) {
-    paginationDiv.style.display = getCurrentApiType() === "WBI" ? "none" : "flex";
+    paginationDiv.hidden = getCurrentApiType() === "WBI";
   }
 }
 
@@ -553,6 +508,20 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+function showDownloadMenu(menuContainer: Element): void {
+  if (menuContainer instanceof HTMLElement) {
+    menuContainer.hidden = false;
+  }
+}
+
+function hideDownloadMenu(menuContainer: HTMLElement): void {
+  menuContainer.hidden = true;
+}
+
+function isDownloadMenuOpen(menuContainer: Element | null): boolean {
+  return menuContainer instanceof HTMLElement && !menuContainer.hidden;
+}
+
 async function applyThemeFromBilibiliCookie(): Promise<void> {
   const themeStyle = await getBilibiliThemeStyle();
   document.documentElement.classList.toggle(NIGHT_MODE_CLASS, themeStyle === "dark");
@@ -586,22 +555,4 @@ function formatTimestamp(timestamp: number): string {
 
 function padZero(num: number): string {
   return num < 10 ? `0${num}` : String(num);
-}
-
-function injectStyle(id: string, css: string): void {
-  if (document.getElementById(id)) return;
-
-  const style = document.createElement("style");
-  style.id = id;
-  style.textContent = css;
-  document.head.appendChild(style);
-}
-
-function getRequiredElement<T extends HTMLElement>(id: string): T {
-  const element = document.getElementById(id);
-  if (!element) {
-    throw new Error(`找不到元素: ${id}`);
-  }
-
-  return element as T;
 }

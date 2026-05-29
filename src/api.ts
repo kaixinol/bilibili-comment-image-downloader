@@ -164,11 +164,8 @@ function cacheWbiReplyData(requestUrl: string, data: BiliReplyResponse): void {
 
   if (hasNewData) {
     setTimeout(() => {
-      const menuContainer = document.getElementById("bili-img-download-menu");
-      if (menuContainer && menuContainer.style.display === "block") {
-        console.log("[实时更新] 检测到新评论，更新下载界面");
-        window.dispatchEvent(new CustomEvent("biliCommentUpdate"));
-      }
+      console.log("[实时更新] 检测到新评论，通知下载界面更新");
+      window.dispatchEvent(new CustomEvent("biliCommentUpdate"));
     }, 100);
   }
 }

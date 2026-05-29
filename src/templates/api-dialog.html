@@ -1,24 +1,22 @@
-<div class="bili-dialog-overlay" role="dialog" aria-modal="true">
-  <div class="bili-dialog" tabindex="-1">
-    <h3 class="bili-dialog-title">API接口配置</h3>
-    <div class="bili-dialog-desc">
-      选择要使用的评论API接口：
-      <small>
-        • WBI签名接口：新版接口，支持实时拦截，禁用翻页<br>
-        • 传统接口：旧版接口，支持翻页功能
-      </small>
-    </div>
-    <label>
-      <input type="radio" name="apiType" value="WBI">
-      WBI签名接口 (实时更新，无翻页)
-    </label>
-    <label>
-      <input type="radio" name="apiType" value="TRADITIONAL">
-      传统接口 (支持翻页)
-    </label>
-    <div class="bili-dialog-buttons">
-      <button type="button" class="btn cancel">取消</button>
-      <button type="button" class="btn confirm">确定</button>
-    </div>
+<dialog class="bili-dialog" aria-labelledby="bili-dialog-title">
+  <h3 class="bili-dialog-title" id="bili-dialog-title">API接口配置</h3>
+  <div class="bili-dialog-desc">
+    选择要使用的评论API接口：
+    <small>
+      • WBI签名接口：新版接口，支持实时拦截，禁用翻页<br>
+      • 传统接口：旧版接口，支持翻页功能
+    </small>
   </div>
-</div>
+  <label>
+    <input type="radio" name="apiType" value="WBI">
+    WBI签名接口 (实时更新，无翻页)
+  </label>
+  <label>
+    <input type="radio" name="apiType" value="TRADITIONAL">
+    传统接口 (支持翻页)
+  </label>
+  <div class="bili-dialog-buttons">
+    <button type="button" class="btn cancel">取消</button>
+    <button type="button" class="btn confirm">确定</button>
+  </div>
+</dialog>
