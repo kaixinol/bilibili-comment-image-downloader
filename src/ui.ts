@@ -15,6 +15,7 @@ import type { ApiType, BiliReply, BoundPaginationElement, DownloadImage, Process
 const NIGHT_MODE_CLASS = "night-mode";
 
 let currentPage = 1;
+let currentIdentifier: string | null = null;
 
 export function createDownloadMenu(): HTMLDivElement {
   injectStyleOnce("bili-img-download-style", menuCss);
@@ -117,7 +118,7 @@ export async function loadAndDisplayData(page = 1): Promise<void> {
   menuContent.innerHTML = "<p>正在加载数据...</p>";
 
   try {
-    const identifier = document.currentIdentifier || getIdentifier();
+    const identifier = currentIdentifier || getIdentifier();
     const apiType = getCurrentApiType();
     console.log(`当前oid: ${identifier}, API类型: ${apiType}`);
 
@@ -237,7 +238,7 @@ function addSpaceNavButton(): void {
         const identifier = dataParams?.match(/\d{4,}/)?.[0] || null;
 
         void applyThemeFromBilibiliCookie();
-        document.currentIdentifier = identifier;
+        currentIdentifier = identifier;
         void loadAndDisplayData();
       });
       root2.host.setAttribute("data-processed", "true");
@@ -254,7 +255,7 @@ async function loadAndDisplayDataSilent(page = 1): Promise<void> {
   }
 
   try {
-    const identifier = document.currentIdentifier || getIdentifier();
+    const identifier = currentIdentifier || getIdentifier();
     const apiType = getCurrentApiType();
     const allReplies = await loadReplies(identifier, apiType, page, menuContent, true);
     if (!allReplies) return;

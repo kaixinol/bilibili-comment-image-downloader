@@ -48,10 +48,6 @@ export interface BoundPaginationElement extends HTMLDivElement {
 }
 
 declare global {
-  interface Document {
-    currentIdentifier: string | null;
-  }
-
   interface Window {
     lastBiliReply: unknown;
     getCurrentApiType?: () => ApiType;

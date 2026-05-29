@@ -10,8 +10,6 @@ import {
 } from "./ui";
 import "./types";
 
-document.currentIdentifier = null;
-
 exposeApiConfig();
 setupFetchInterceptor();
 
